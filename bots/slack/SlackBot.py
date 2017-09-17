@@ -2,31 +2,6 @@
 import requests
 
 from ..common import Status
-
-class SlackMessage:
-    def __init__(self, channel, text, issuer=None):
-        self.channel = channel
-        self.text = text
-        self.issuer = issuer
-        
-    def toquery(self, token):
-        data = {
-            'text': self.text,
-            'channel': self.channel,
-            'token': token,
-            'as_user': True
-        }
-
-        if self.issuer is not None:
-            isq = {}
-            for key in ['username', 'icon_url', 'icon_emoji']:
-                if key in self.issuer:
-                    isq[key] = self.issuer[key]
-
-            data.update(isq)
-            data['as_user'] = len(isq) == 0
-
-        return data
             
 class SlackBot:
     def __init__(self, confs):
@@ -41,13 +16,35 @@ class SlackBot:
 
     def onmessage(self, message):
         data = message.data
+        query = self.makemessage(data)
+        self.postslack(query)
 
+    def makemessage(self, data):
         channel = data['channel']
         text = data['text']
         issuer = data.get('issuer', self.defaultissuer)
 
-        self.postslack(SlackMessage(channel, text, issuer))
-        
-    def postslack(self, smsg):
-        return requests.post('https://slack.com/api/chat.postMessage', smsg.toquery(self.token))
+        return self.toquery(channel, text, issuer)
+
+    def toquery(self, channel, text, issuer):
+        data = {
+            'text': text,
+            'channel': channel,
+            'token': self.token,
+            'as_user': True
+        }
+
+        if issuer is not None:
+            isq = {}
+            for key in ['username', 'icon_url', 'icon_emoji']:
+                if key in issuer:
+                    isq[key] = issuer[key]
+
+            data.update(isq)
+            data['as_user'] = len(isq) == 0
+
+        return data
+
+    def postslack(self, query):
+        return requests.post('https://slack.com/api/chat.postMessage', query)
         
