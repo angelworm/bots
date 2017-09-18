@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree as ET
 from mastodon import Mastodon
 from mastodon.streaming import StreamListener, MalformedEventError
 from collections import OrderedDict
@@ -15,6 +16,8 @@ class LocalTimelineStreamListener(StreamListener):
         self.filtername = filtername if filtername is not None else 'mastodon-ltl'
 
     def on_update(self, status):
+        status = self.flatten_message(status)
+
         self.cache[status['id']] = status
         cap = len(self.cache) - self.maxcachesize
         for i in range(cap):
@@ -42,6 +45,15 @@ class LocalTimelineStreamListener(StreamListener):
 
     def gen_message_(self, type, data):
         return Status(self.filtername, type, data)
+
+    def flatten_message(self, status):
+        ret = dict(status)
+        try:
+            el = ET.fromstring(status['content'])
+            ret['content'] = ''.join(el.itertext())
+        except ParseError:
+            pass
+        return ret
 
 class LocalTimeline(FilterBase):
 
