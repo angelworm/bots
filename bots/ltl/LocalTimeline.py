@@ -20,22 +20,22 @@ class LocalTimelineStreamListener(StreamListener):
         for i in range(cap):
             self.cache.popitem(last = False)
 
-        message = self.gen_message_('ltl_update', status)
+        message = self.gen_message_('ltl.update', status)
         self.Q.put(message)
 
     def on_notification(self, notification):
         pass
 
     def on_delete(self, status_id):
-        found = {
+        message = self.gen_message_('ltl.delete', {
             'id': int(status_id)
-        }
-        for s in self.cache:
-            if s['id'] == status_id:
-                found = s
-
-        message = self.gen_message_('ltl_delete', found)
+        })
         self.Q.put(message)
+
+        if status_id in self.cache:
+            found = self.cache[status_id]
+            message = self.gen_message_('ltl.delete.found', found)
+            self.Q.put(message)
 
     def handle_heartbeat(self):
         pass
