@@ -41,7 +41,10 @@ class FilterBase(Process):
     def run_(self):
         while True:
             message = self.iQ.get()
-            self.onmessage(message)
+            try:
+                self.onmessage(message)
+            except Exception as e:
+                print(e)
 
     def onmessage(self, message):
         pass
