@@ -1,17 +1,17 @@
 
 import requests
 
-from ..common import Status
-            
-class SlackBot:
+from ..common import Status, FilterBase
+
+class SlackBot(FilterBase):
     def __init__(self, confs):
+        super().__init__(confs['filtername'])
         self.token = confs['token']
-        self.filtername = confs['filtername']
         self.defaultissuer = confs.get('defaultissuer', None)
 
-    def run(self, iQ, oQ):
+    def run_(self):
         while True:
-            message = iQ.get()
+            message = self.iQ.get()
             self.onmessage(message)
 
     def onmessage(self, message):
@@ -47,4 +47,3 @@ class SlackBot:
 
     def postslack(self, query):
         return requests.post('https://slack.com/api/chat.postMessage', query)
-        

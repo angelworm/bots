@@ -1,7 +1,7 @@
 
 import string
 
-from ..common import Status
+from ..common import Status, FilterBase
 
 def traverse(data, func):
     if isinstance(data, dict):
@@ -11,18 +11,12 @@ def traverse(data, func):
         return ret
     else:
         return func(data)
-    
-class Converter:
+
+class Converter(FilterBase):
     def __init__(self, confs):
-        self.filtername = confs['filtername']
+        super().__init__(confs['filtername'])
         self.typetemplate = confs.get('type', '{type}')
         self.datatemplate = confs.get('data', {})
-
-    def run(self, iQ, oQ):
-        self.Q = oQ
-        while True:
-            message = iQ.get()
-            self.onmessage(message)
 
     def onmessage(self, message):
         nm = self.convert(message)

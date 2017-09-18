@@ -3,7 +3,7 @@
 from mastodon import Mastodon
 from mastodon.streaming import StreamListener, MalformedEventError
 
-from ..common import Status
+from ..common import Status, FilterBase
 
 class LocalTimelineStreamListener(StreamListener):
     def __init__(self, confs, maxcahcesize, filtername, Q):
@@ -16,13 +16,13 @@ class LocalTimelineStreamListener(StreamListener):
     def on_update(self, status):
         self.cache.append(status)
         self.cache = self.cache[:self.maxcachesize]
-        
+
         message = self.gen_message_('ltl_update', status)
         self.Q.put(message)
 
     def on_notification(self, notification):
         pass
-        
+
     def on_delete(self, status_id):
         found = {
             'id': int(status_id)
@@ -30,7 +30,7 @@ class LocalTimelineStreamListener(StreamListener):
         for s in self.cache:
             if s['id'] == status_id:
                 found = s
-        
+
         message = self.gen_message_('ltl_delete', found)
         self.Q.put(message)
 
@@ -39,20 +39,19 @@ class LocalTimelineStreamListener(StreamListener):
 
     def gen_message_(self, type, data):
         return Status(self.filtername, type, data)
-    
-class LocalTimeline:
+
+class LocalTimeline(FilterBase):
 
     def __init__(self, confs):
+        super().__init__(confs['filtername'])
         self.client_id = confs['client_id']
         self.client_secret = confs['client_secret']
         self.access_token = confs['access_token']
         self.host = confs['host']
-        self.filtername = confs['filtername']
         self.maxcahcesize = confs.get('maxcachesize', None)
         self.confs = confs
 
-    def run(self, iQ, oQ):
-        self.Q = oQ
+    def run_(self):
         self.mastodon = Mastodon(
             client_id = self.client_id,
             client_secret = self.client_secret,
@@ -60,4 +59,4 @@ class LocalTimeline:
             api_base_url = self.host)
 
         self.listener = LocalTimelineStreamListener(self.confs, self.maxcahcesize, self.filtername, self.Q)
-        self.mastodon.local_stream(self.listener, async=True)
+        self.mastodon.local_stream(self.listener, async=False)
