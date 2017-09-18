@@ -9,21 +9,21 @@ class ConverterTest(unittest.TestCase):
     def test_onmessage_type(self):
         filtername = 'filter1'
         statustype = 'message.post'
-        
+
         bot = Converter({
             'filtername': 'converter1'
         })
         bot.Q = queue.Queue()
 
         status = Status(filtername, statustype, {})
-        
+
         bot.onmessage(status)
         ret = bot.Q.get(0)
-        
+
         self.assertEqual(ret.sender, 'converter1')
         self.assertEqual(ret.type, statustype)
         self.assertTrue(bot.Q.empty())
-        
+
         bot = Converter({
             'filtername': 'converter1',
             'type': '{sender}'
@@ -31,14 +31,14 @@ class ConverterTest(unittest.TestCase):
         bot.Q = queue.Queue()
 
         status = Status(filtername, statustype, {})
-        
+
         bot.onmessage(status)
         ret = bot.Q.get(0)
-        
+
         self.assertEqual(ret.sender, 'converter1')
         self.assertEqual(ret.type, filtername)
         self.assertTrue(bot.Q.empty())
-        
+
         bot = Converter({
             'filtername': 'converter1',
             'type': '{data[id]}'
@@ -46,14 +46,14 @@ class ConverterTest(unittest.TestCase):
         bot.Q = queue.Queue()
 
         status = Status(filtername, statustype, {'id': 'id1'})
-        
+
         bot.onmessage(status)
         ret = bot.Q.get(0)
-        
+
         self.assertEqual(ret.sender, 'converter1')
         self.assertEqual(ret.type, 'id1')
         self.assertTrue(bot.Q.empty())
-        
+
         bot = Converter({
             'filtername': 'converter1',
             'type': '{data[id][id]}'
@@ -61,30 +61,30 @@ class ConverterTest(unittest.TestCase):
         bot.Q = queue.Queue()
 
         status = Status(filtername, statustype, {'id': {'id': 'id1'}})
-        
+
         bot.onmessage(status)
         ret = bot.Q.get(0)
-        
+
         self.assertEqual(ret.sender, 'converter1')
         self.assertEqual(ret.type, 'id1')
         self.assertTrue(bot.Q.empty())
-        
+
     def test_onmessage_data(self):
         filtername = 'filter1'
         statustype = 'message.post'
-        
+
         bot = Converter({
             'filtername': 'converter1'
         })
         bot.Q = queue.Queue()
         status = Status(filtername, statustype, {})
-        
+
         bot.onmessage(status)
         ret = bot.Q.get(0)
-        
+
         self.assertEqual(ret.data, {})
         self.assertTrue(bot.Q.empty())
-        
+
         bot = Converter({
             'filtername': 'converter1',
             'data': {
@@ -103,10 +103,10 @@ class ConverterTest(unittest.TestCase):
             'text1': 'tx1',
             'text2': 'tx2'
         })
-        
+
         bot.onmessage(status)
         ret = bot.Q.get(0)
-        
+
         self.assertEqual(ret.data, {
             'sender': filtername,
             'type': statustype,
