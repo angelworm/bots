@@ -2,6 +2,7 @@
 
 from mastodon import Mastodon
 from mastodon.streaming import StreamListener, MalformedEventError
+from collections import OrderedDict
 
 from ..common import Status, FilterBase
 
@@ -9,13 +10,15 @@ class LocalTimelineStreamListener(StreamListener):
     def __init__(self, confs, maxcahcesize, filtername, Q):
         self.confs = confs
         self.Q = Q
-        self.cache = []
+        self.cache = OrderedDict()
         self.maxcachesize = maxcahcesize if maxcahcesize is not None else 10000
         self.filtername = filtername if filtername is not None else 'mastodon-ltl'
 
     def on_update(self, status):
-        self.cache.append(status)
-        self.cache = self.cache[:self.maxcachesize]
+        self.cache[status['id']] = status
+        cap = len(self.cache) - self.maxcachesize
+        for i in range(cap):
+            self.cache.popitem(last = False)
 
         message = self.gen_message_('ltl_update', status)
         self.Q.put(message)
