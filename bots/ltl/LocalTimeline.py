@@ -49,9 +49,14 @@ class LocalTimelineStreamListener(StreamListener):
     def flatten_message(self, status):
         ret = dict(status)
         try:
-            el = ET.fromstring(status['content'])
-            ret['content'] = ''.join(el.itertext())
-        except ParseError:
+            text = '<div>{}</div>'.format(status['content'])
+            el = ET.fromstring(text)
+
+            ret['content'] = '\n'.join(
+                ''.join(x.itertext())
+                for x in el)
+        except ET.ParseError:
+            print(status['content'])
             pass
         return ret
 
