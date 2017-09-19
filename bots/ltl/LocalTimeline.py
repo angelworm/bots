@@ -7,6 +7,29 @@ from collections import OrderedDict
 
 from ..common import Status, FilterBase
 
+def flat_el(el):
+    if el.tag == 'br':
+        return '\n'
+
+    ret = el.text if el.text is not None else ''
+    for x in el:
+        ret += flat_el(x)
+        ret += x.tail if x.tail is not None else ''
+    return ret
+
+def flatten_message(status):
+    ret = dict(status)
+    try:
+        text = '<div>{}</div>'.format(status['content'])
+        el = ET.fromstring(text)
+
+        ps = list(flat_el(x) for x in el)
+
+        ret['content'] = '\n\n'.join(ps)
+    except ET.ParseError:
+        print(status['content'])
+    return ret
+
 class LocalTimelineStreamListener(StreamListener):
     def __init__(self, confs, maxcahcesize, filtername, Q):
         self.confs = confs
@@ -16,7 +39,7 @@ class LocalTimelineStreamListener(StreamListener):
         self.filtername = filtername if filtername is not None else 'mastodon-ltl'
 
     def on_update(self, status):
-        status = self.flatten_message(status)
+        status = flatten_message(status)
 
         self.cache[status['id']] = status
         cap = len(self.cache) - self.maxcachesize
@@ -45,30 +68,6 @@ class LocalTimelineStreamListener(StreamListener):
 
     def gen_message_(self, type, data):
         return Status(self.filtername, type, data)
-
-    def flat_el(self, el):
-        if el.tag == 'br':
-            return '\n'
-
-        ret = el.text if el.text is not None else ''
-        for x in el:
-            ret += self.flat_el(x)
-            ret += x.tail if x.tail is not None else ''
-        return ret
-
-    def flatten_message(self, status):
-        ret = dict(status)
-        try:
-            text = '<div>{}</div>'.format(status['content'])
-            el = ET.fromstring(text)
-
-            ps = list(self.flat_el(x) for x in el)
-
-            ret['content'] = '\n\n'.join(ps)
-        except ET.ParseError:
-            print(status['content'])
-            pass
-        return ret
 
 class LocalTimeline(FilterBase):
 
