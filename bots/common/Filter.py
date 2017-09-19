@@ -36,15 +36,16 @@ class FilterBase(Process):
         self.Q = Pusher()
 
     def run(self):
-        self.run_()
+        while True:
+            try:
+                self.run_()
+            except Exception as e:
+                print(e)
 
     def run_(self):
         while True:
             message = self.iQ.get()
-            try:
-                self.onmessage(message)
-            except Exception as e:
-                print(e)
+            self.onmessage(message)
 
     def onmessage(self, message):
         pass
