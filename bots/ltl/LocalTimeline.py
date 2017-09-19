@@ -4,6 +4,8 @@ import xml.etree.ElementTree as ET
 from mastodon import Mastodon
 from mastodon.streaming import StreamListener, MalformedEventError
 from collections import OrderedDict
+import redis
+import pickle
 
 from ..common import Status, FilterBase
 
@@ -34,17 +36,22 @@ class LocalTimelineStreamListener(StreamListener):
     def __init__(self, confs, maxcahcesize, filtername, Q):
         self.confs = confs
         self.Q = Q
-        self.cache = OrderedDict()
-        self.maxcachesize = maxcahcesize if maxcahcesize is not None else 10000
         self.filtername = filtername if filtername is not None else 'mastodon-ltl'
+        self.cache = redis.StrictRedis()
+
+    def put_cache_(self, status):
+        key = 'ltl:{}:{}'.format(self.filtername, status['id'])
+        self.cache.set(key, pickle.dumps(status), ex=60 * 60 * 6)
+
+    def get_cache(self, status_id):
+        key = 'ltl:{}:{}'.format(self.filtername, status_id)
+        status = self.cache.get(key)
+        return pickle.loads(status) if status is not None else None
 
     def on_update(self, status):
         status = flatten_message(status)
 
-        self.cache[status['id']] = status
-        cap = len(self.cache) - self.maxcachesize
-        for i in range(cap):
-            self.cache.popitem(last = False)
+        self.put_cache_(status)
 
         message = self.gen_message_('ltl.update', status)
         self.Q.put(message)
@@ -58,8 +65,8 @@ class LocalTimelineStreamListener(StreamListener):
         })
         self.Q.put(message)
 
-        if status_id in self.cache:
-            found = self.cache[status_id]
+        found = self.get_cache(status_id)
+        if found is not None:
             message = self.gen_message_('ltl.delete.found', found)
             self.Q.put(message)
 
