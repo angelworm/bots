@@ -24,6 +24,7 @@ class FileLogger(FilterBase):
     def onmessage(self, message):
         self.write(message)
         
+        message.data['sender'] = message.sender
         message.sender = self.filtername
         self.Q.put(message)
 

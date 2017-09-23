@@ -37,6 +37,7 @@ class FilterBase(Process):
         self.Q = Pusher()
 
     def run(self):
+        self.log('start', level='INFO')
         while True:
             try:
                 self.run_()

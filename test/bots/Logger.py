@@ -42,7 +42,8 @@ class FileLoggerTest(unittest.TestCase):
         self.assertEqual(ret.type, 'sys.log')
         self.assertEqual(ret.data, {
             'level': 'INFO',
-            'message': 'logmessage1'
+            'message': 'logmessage1',
+            'sender': 'sender'
         })
 
         path = self.logdir + '/' + self.logfile
