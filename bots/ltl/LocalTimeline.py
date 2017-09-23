@@ -41,7 +41,7 @@ class LocalTimelineStreamListener(StreamListener):
 
     def put_cache_(self, status):
         key = 'ltl:{}:{}'.format(self.filtername, status['id'])
-        self.cache.set(key, pickle.dumps(status), ex=60 * 60 * 6)
+        self.cache.set(key, pickle.dumps(status), ex=60 * 60 * 24 * 3)
 
     def get_cache(self, status_id):
         key = 'ltl:{}:{}'.format(self.filtername, status_id)
