@@ -2,6 +2,7 @@
 from multiprocessing import Process, Queue
 from queue import Empty, Full
 import collections
+import traceback
 
 from .Status import Status
 
@@ -40,7 +41,7 @@ class FilterBase(Process):
             try:
                 self.run_()
             except Exception as e:
-                print(e)
+                self.log(traceback.format_exc())
 
     def run_(self):
         while True:
@@ -54,3 +55,10 @@ class FilterBase(Process):
         if not isinstance(f, FilterBase):
             raise FilterSubscribeException
         self.Q.subscribe(statustype, f.iQ)
+
+    def log(self, message, level="ERROR"):
+        status = Status(self.filtername, 'sys.log', {
+            'level': level,
+            'message': message
+        })
+        self.Q.put(status)
