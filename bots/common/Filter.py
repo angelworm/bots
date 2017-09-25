@@ -43,6 +43,9 @@ class FilterBase(Process):
                 self.run_()
             except Exception as e:
                 self.log(traceback.format_exc())
+            except BaseException:
+                self.log(traceback.format_exc())
+                raise
 
     def run_(self):
         while True:

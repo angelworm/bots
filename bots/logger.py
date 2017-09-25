@@ -20,6 +20,10 @@ class FileLogger(FilterBase):
                 self.run_()
             except Exception as e:
                 print(traceback.format_exc())
+                try:
+                    self.write(traceback.format_exc())
+                except Exception as ei:
+                    print(ei)
 
     def onmessage(self, message):
         self.write(message)
