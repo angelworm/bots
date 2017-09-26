@@ -9,11 +9,6 @@ class SlackBot(FilterBase):
         self.token = confs['token']
         self.defaultissuer = confs.get('defaultissuer', None)
 
-    def run_(self):
-        while True:
-            message = self.iQ.get()
-            self.onmessage(message)
-
     def onmessage(self, message):
         data = message.data
         query = self.makemessage(data)
@@ -46,4 +41,4 @@ class SlackBot(FilterBase):
         return data
 
     def postslack(self, query):
-        return requests.post('https://slack.com/api/chat.postMessage', query)
+        return requests.post('https://slack.com/api/chat.postMessage', query, timeout=10)
