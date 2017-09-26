@@ -3,6 +3,7 @@ from multiprocessing import Process, Queue
 from queue import Empty, Full
 import collections
 import traceback
+import faulthandler
 
 from .Status import Status
 
@@ -50,7 +51,13 @@ class FilterBase(Process):
     def run_(self):
         while True:
             message = self.iQ.get()
-            self.onmessage(message)
+
+            faulthandler.dump_traceback_later(60 * 1)
+            try:
+                self.onmessage(message)
+            finally:
+                faulthandler.cancel_dump_traceback_later()
+
 
     def onmessage(self, message):
         pass

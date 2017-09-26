@@ -6,6 +6,7 @@ from mastodon.streaming import StreamListener, MalformedEventError
 from collections import OrderedDict
 import redis
 import pickle
+import faulthandler
 
 from ..common import Status, FilterBase
 
@@ -49,6 +50,8 @@ class LocalTimelineStreamListener(StreamListener):
         return pickle.loads(status) if status is not None else None
 
     def on_update(self, status):
+        faulthandler.dump_traceback_later(60 * 10)
+
         status = flatten_message(status)
 
         self.put_cache_(status)
