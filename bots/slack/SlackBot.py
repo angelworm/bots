@@ -8,11 +8,23 @@ class SlackBot(FilterBase):
         super().__init__(confs['filtername'])
         self.token = confs['token']
         self.defaultissuer = confs.get('defaultissuer', None)
+        self.notfound = []
 
     def onmessage(self, message):
         data = message.data
         query = self.makemessage(data)
-        self.postslack(query)
+
+        ret = self.postslack(query)
+        try:
+            rj = ret.json()
+            if not rj.get('ok', True):
+                if rj.get('error', '') == 'channel_not_found':
+                    ch = query['channel']
+                    if ch not in self.notfound:
+                        self.notfound.append(ch)
+                        self.log('channel not found {}'.format(ch))
+        except ValueError as e:
+            self.log(ret.text)
 
     def makemessage(self, data):
         channel = data['channel']
