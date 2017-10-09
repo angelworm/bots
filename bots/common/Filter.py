@@ -38,8 +38,8 @@ class FilterBase(Process):
         self.Q = Pusher()
 
     def run(self):
-        self.log('start', level='INFO')
         while True:
+            self.log('start', level='INFO')
             try:
                 self.run_()
             except Exception as e:
