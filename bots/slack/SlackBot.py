@@ -21,10 +21,29 @@ class SlackBot(FilterBase):
 
         return self.toquery(channel, text, issuer)
 
+    def normalize_channel(self, txt):
+        ret = ''
+        if txt is None:
+            pass
+        elif '-' in txt:
+            chs = txt.split('-', 1)
+            main = chs[0]
+            sub = chs[1]
+
+            ret = main[:10] + '-' + sub
+            ret = ret[:21]
+        else:
+            ret = txt[:21]
+
+        replacements = [' ', '.', '。', '、', '「', '」', '【', '】', '\'']
+        for r in replacements:
+            ret = ret.replace(r, '_')
+        return ret
+
     def toquery(self, channel, text, issuer):
         data = {
             'text': text,
-            'channel': channel,
+            'channel': self.normalize_channel(channel),
             'token': self.token,
             'as_user': True
         }
