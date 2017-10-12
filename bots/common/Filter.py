@@ -39,7 +39,7 @@ class FilterBase(Process):
 
     def run(self):
         while True:
-            self.log('start', level='INFO')
+            self.log('start: PID:' + str(self.pid), level='INFO')
             try:
                 self.run_()
             except Exception as e:
